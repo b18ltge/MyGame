@@ -20,34 +20,30 @@ public class GameScene {
         this.defaultFont = new Font(20);
         this.pane = new Pane();
         this.players = new ArrayList<>();
-        pane.setStyle("-fx-background-color: #f5fffa;");
+        pane.setStyle("-fx-background-color: #e5eeea;");
         loadScene();
     }
 
     private void loadScene() {
-        Color colorBlue = new Color(0, 0, 0.75, 0.6);
-        Color colorRed = new Color(0.75, 0, 0, 0.6);
-        Color color = new Color(0.5, 0.5, 0.5, 0.6);
+        Color colorBlue = new Color(0, 0, 0.75, 0.5);
+        Color color = new Color(0.5, 0.5, 0.5, 0.5);
 
 
-        var cell1 = new Cell(10, 50, 30, 500, 50, 50);
-        var cell2 = new Cell(10, 50, 30, 500, 250, 250);
-        var cell3 = new Cell(10, 120, 40, 400, 150, 150);
-        var cell4 = new Cell(10,    120, 40, 400, 250, 50);
+        var cell1 = new Cell(pane,10, 50, 30, 500, 50, 50);
+        var cell2 = new Cell(pane,10, 50, 30, 500, 250, 250);
+        var cell3 = new Cell(pane,10, 120, 40, 400, 150, 150);
+        var cell4 = new Cell(pane,10, 120, 40, 400, 250, 50);
 
         players.add(new Player(colorBlue, cell1, cell2));
         players.add(new Player(color, cell3, cell4));
 
         players.forEach(player -> {
             player.getCells().forEach(cell -> {
-                pane.getChildren().add(cell);
-                pane.getChildren().addAll(cell.getNodes());
 
                 cell.setOnMouseClickedEvent(mouseEvent -> {
                     players.get(0).onSelected(cell);
                     if (mouseEvent.getClickCount() > 1) {
                         players.get(0).attack(cell);
-                        players.get(0).clearSelection();
                     }
                 });
             });;

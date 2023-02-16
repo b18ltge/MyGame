@@ -3,16 +3,13 @@ package org.example;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-
-import java.util.Collection;
-import java.util.List;
 
 public class Cell extends Circle {
     private int health;
@@ -20,16 +17,20 @@ public class Cell extends Circle {
     private final int regenDelay;
     private final Label healthLabel;
     private boolean isSelected = false;
+    private byte isHealing = 1;
     private final AnimationCircle animationCircle;
-    private final Timeline healthTimeLine;
+    private final Timeline increaseHealthTimeLine;
+    private final Timeline decreaseHealthTimeLine;
+    private Player player;
+    private final Pane pane;
+    public Cell(final Pane pane, int health, int maxHealth, int radius, int regenDelay, int posX, int posY) {
 
-    public Cell(int health, int maxHealth, int radius, int regenDelay, int posX, int posY) {
         super(posX, posY, radius);
-        this.health = health;
         this.maxHealth = maxHealth;
         this.regenDelay = regenDelay;
+        this.pane = pane;
 
-        this.healthLabel = new Label("" + health);
+        this.healthLabel = new Label();
         this.healthLabel.setLayoutX(posX);
         this.healthLabel.setLayoutY(posY);
         this.healthLabel.layoutXProperty().bind(this.centerXProperty().subtract(healthLabel.widthProperty().divide(2)));
@@ -37,26 +38,34 @@ public class Cell extends Circle {
         this.healthLabel.setFont(new Font(16));
         this.healthLabel.setTextFill(Color.WHITE);
 
-        this.animationCircle = new AnimationCircle(posX, posY, radius + 10, Color.BLACK);
-        this.animationCircle.setVisible(false);
+        setHealth(health);
 
-        this.healthTimeLine = new Timeline(
+        this.animationCircle = new AnimationCircle(posX, posY, radius + 10, Color.BLACK);
+
+        this.increaseHealthTimeLine = new Timeline(
                 new KeyFrame(Duration.millis(regenDelay), actionEvent -> setHealth(Cell.this.health + 1))
         );
-        healthTimeLine.setCycleCount(Timeline.INDEFINITE);
-        healthTimeLine.play();
+        this.decreaseHealthTimeLine = new Timeline(
+                new KeyFrame(Duration.millis(regenDelay), actionEvent -> setHealth(Cell.this.health - 1))
+        );
+        increaseHealthTimeLine.setCycleCount(Timeline.INDEFINITE);
+        decreaseHealthTimeLine.setCycleCount(Timeline.INDEFINITE);
+        increaseHealthTimeLine.play();
+
+        pane.getChildren().add(this);
+        pane.getChildren().add(healthLabel);
+        pane.getChildren().add(animationCircle.getPart1());
+        pane.getChildren().add(animationCircle.getPart2());
     }
 
     public void onSelected() {
         if (isSelected) {
             isSelected = false;
-            animationCircle.setVisible(false);
             animationCircle.stop();
             return;
         }
 
         isSelected = true;
-        animationCircle.setVisible(true);
         animationCircle.rotate();
     }
 
@@ -72,25 +81,32 @@ public class Cell extends Circle {
         return regenDelay;
     }
     public void setHealth(int health) {
-        this.health = Math.min(health, maxHealth);
+        this.health = health;
+        if (isHealing > -1 && health > maxHealth) {
+            isHealing = -1;
+            increaseHealthTimeLine.stop();
+            decreaseHealthTimeLine.play();
+        } else if (health == maxHealth) {
+            isHealing = 0;
+            increaseHealthTimeLine.stop();
+            decreaseHealthTimeLine.stop();
+        } else if (isHealing < 1 && health < maxHealth) {
+            decreaseHealthTimeLine.stop();
+            increaseHealthTimeLine.play();
+            isHealing = 1;
+        }
         this.healthLabel.setText("" + this.health);
     }
-    public Collection<Node> getNodes() {
-        return List.of(healthLabel, animationCircle.getPart1(), animationCircle.getPart2());
-    }
 
-    public void attack(Cell target) {
+    public Bullet attack(final Cell target) {
         if (this == target) {
-            return;
+            return null;
         }
 
-        //TODO: generate and send a bullet
-        if (target.getFill().equals(this.getFill())) {
-            target.setHealth(target.getHealth() + this.getHealth() / 2);
-        } else {
-            target.setHealth(target.getHealth() - this.getHealth() / 2);
-        }
+        var bullet = new Bullet(pane, player, (int) getCenterX(), (int) getCenterY(), target, this.getHealth() / 2, 8);
         this.setHealth(health - this.getHealth() / 2);
+
+        return bullet;
     }
 
     public final void setOnMouseClickedEvent(EventHandler<? super MouseEvent> eventHandler) {
@@ -98,5 +114,28 @@ public class Cell extends Circle {
         healthLabel.setOnMouseClicked(eventHandler);
         animationCircle.getPart1().setOnMouseClicked(eventHandler);
         animationCircle.getPart2().setOnMouseClicked(eventHandler);
+    }
+
+    public void takeDamage(final Bullet bullet) {
+        if (bullet.player.getPlayerColor() == this.player.getPlayerColor()) {
+            setHealth(health + bullet.amount);
+            return;
+        }
+
+        int rest = bullet.amount - this.health;
+        setHealth(Math.max(0, health - bullet.amount));
+        if (health == 0) {
+            this.player = bullet.player;
+            bullet.player.addCell(this);
+            this.health = rest;
+        }
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
     }
 }

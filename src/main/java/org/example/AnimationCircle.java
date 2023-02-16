@@ -15,6 +15,8 @@ public class AnimationCircle {
     public AnimationCircle(int centerX, int centerY, int radius, Color strkColor) {
         this.part1 = RenderUtils.drawSemiRing(centerX, centerY, radius, strkColor, 0);
         this.part2 = RenderUtils.drawSemiRing(centerX, centerY, radius, strkColor, radius * 2);
+        part1.setVisible(false);
+        part2.setVisible(false);
 
         Rotate rotation = new Rotate(360, centerX, centerY);
         part1.getTransforms().add(rotation);
@@ -25,10 +27,6 @@ public class AnimationCircle {
                 new KeyFrame(Duration.seconds(5), new KeyValue(rotation.angleProperty(), 360))
         );
         rotationTimeline.setCycleCount(Timeline.INDEFINITE);
-    }
-    public void setVisible(boolean isVisible) {
-        part1.setVisible(isVisible);
-        part2.setVisible(isVisible);
     }
 
     public Path getPart1() {
@@ -41,8 +39,12 @@ public class AnimationCircle {
 
     public void rotate() {
         rotationTimeline.play();
+        part1.setVisible(true);
+        part2.setVisible(true);
     }
     public void stop() {
         rotationTimeline.stop();
+        part1.setVisible(false);
+        part2.setVisible(false);
     }
 }

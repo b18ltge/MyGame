@@ -1,27 +1,26 @@
 package org.example;
 
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.StrokeType;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class Player {
-    private final Set<Cell> cells;
+    private final Set<Cell> cells = new HashSet<>();
     private final Set<Cell> selectedCells = new HashSet<>();
-
+    private final Set<Bullet> activeBullets = new HashSet<>();
     private Color playerColor;
+    private Color playerStrokeColor;
 
-    private void initColor(Color playerColor) {
+    private void initColor(final Color playerColor) {
         this.playerColor = playerColor;
+        this.playerStrokeColor = new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(), 1.0);
         this.cells.forEach(cell -> {
             cell.setFill(playerColor);
-            var strokeColor = new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(),
-                    1.0);
-            cell.setStroke(strokeColor);
+            cell.setStroke(playerStrokeColor);
             cell.setStrokeType(StrokeType.OUTSIDE);
             cell.setStrokeWidth(2);
         });
@@ -29,13 +28,12 @@ public class Player {
 
 
     public Player(Color playerColor, Set<Cell> playerCells) {
-        this.cells = playerCells;
+        addCells(playerCells);
         initColor(playerColor);
     }
 
     public Player(Color playerColor, Cell... playerCells) {
-        this.cells = new HashSet<>();
-        this.cells.addAll(List.of(playerCells));
+        addCells(List.of(playerCells));
         initColor(playerColor);
     }
 
@@ -44,9 +42,12 @@ public class Player {
             return;
         }
 
-        selectedCells.forEach(cell -> cell.attack(target));
+        selectedCells.forEach(cell -> {
+            var bullet = cell.attack(target);
+            activeBullets.add(bullet);
+        });
+        clearSelection();
     }
-
     public void onSelected(Cell cell) {
         if (cell.getFill() != playerColor) {
             return;     // cannot select not own cell;
@@ -62,17 +63,45 @@ public class Player {
         selectedCells.add(cell);
     }
 
-
     public Set<Cell> getCells() {
         return cells;
     }
 
-    public Set<Cell> getSelectedCells() {
-        return selectedCells;
+    private void clearSelection() {
+        selectedCells.forEach(Cell::onSelected);    //deselect cells
+        selectedCells.clear();
     }
 
-    public void clearSelection() {
-        selectedCells.forEach(Cell::onSelected);
-        selectedCells.clear();
+    public void removeCell(final Cell cell) {
+        cell.setPlayer(null);
+        cells.remove(cell);
+        selectedCells.remove(cell);
+    }
+
+    public void addCell(final Cell cell) {
+        var player = cell.getPlayer();
+        if (player != null)
+            player.removeCell(cell);
+        cell.setPlayer(this);
+        cell.setFill(playerColor);
+        cell.setStroke(playerStrokeColor);
+        this.cells.add(cell);
+    }
+
+    public void addCells(final Collection<Cell> cells) {
+        cells.forEach(this::addCell);
+    }
+
+    public void removeBullet(final Bullet bullet) {
+        activeBullets.remove(bullet);
+        bullet.deactivate();
+    }
+
+    public Color getPlayerStrokeColor() {
+        return playerStrokeColor;
+    }
+
+    public Color getPlayerColor() {
+        return playerColor;
     }
 }
