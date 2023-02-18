@@ -1,27 +1,94 @@
 package org.example;
 
+import javafx.event.EventHandler;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
+import javafx.scene.shape.Rectangle;
+import org.example.models.Cell;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GameScene {
-    private int windowWidth;
-    private int windowHeight;
-    private Font defaultFont;
     private Pane pane;
-    private List<Player> players;
+    private final List<Player> players;
+    private double mouseX;
+    private double mouseY;
+    Rectangle selectionRectangle = new Rectangle();
+    private boolean canSelect = true;
 
     public GameScene() {
-        this.windowWidth = 640;
-        this.windowHeight = 480;
-        this.defaultFont = new Font(20);
         this.pane = new Pane();
         this.players = new ArrayList<>();
         pane.setStyle("-fx-background-color: #e5eeea;");
         loadScene();
+
+        selectionRectangle.setVisible(false);
+        selectionRectangle.setFill(new Color(0.2, 0.2, 1, 0.6));
+        selectionRectangle.setStroke(new Color(0.2,0.2,1,1));
+        pane.getChildren().add(selectionRectangle);
+
+        pane.setOnMousePressed(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+
+                mouseX = mouseEvent.getSceneX();
+                mouseY = mouseEvent.getSceneY();
+
+                for(var player : players) {
+                    for(var cell : player.getCells()) {
+                        boolean contains = cell.contains(mouseX, mouseY);
+                        if (contains) {
+                            canSelect = false;
+                            return;
+                        }
+                    }
+                }
+                canSelect = true;
+
+                selectionRectangle.setX(mouseX);
+                selectionRectangle.setY(mouseY);
+            }
+        });
+
+        pane.setOnMouseDragged(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                if (!canSelect) {
+                    return;
+                }
+
+                double offsetX = Math.abs(event.getSceneX() - mouseX);
+                double offsetY = Math.abs(event.getSceneY() - mouseY);
+
+                selectionRectangle.setX(Math.min(event.getSceneX(), mouseX));
+                selectionRectangle.setY(Math.min(event.getSceneY(), mouseY));
+
+                selectionRectangle.setWidth(offsetX);
+                selectionRectangle.setHeight(offsetY);
+
+                selectionRectangle.setVisible(true);
+            }
+        });
+
+        pane.setOnMouseReleased(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent mouseEvent) {
+                if (!canSelect) {
+                    return;
+                }
+                var currentPlayer = players.get(0);
+                currentPlayer.getCells().forEach(cell -> {
+                    if (selectionRectangle.contains(cell.getCenterX(), cell.getCenterY()) &&
+                            !currentPlayer.getSelectedCells().contains(cell)) {
+                        currentPlayer.onSelected(cell);
+                    }
+                });
+                selectionRectangle.setVisible(false);
+
+            }
+        });
     }
 
     private void loadScene() {
@@ -39,36 +106,19 @@ public class GameScene {
 
         players.forEach(player -> {
             player.getCells().forEach(cell -> {
-
                 cell.setOnMouseClickedEvent(mouseEvent -> {
                     players.get(0).onSelected(cell);
                     if (mouseEvent.getClickCount() > 1) {
                         players.get(0).attack(cell);
                     }
                 });
-            });;
+            });
         });
 
     }
 
-    public int getWindowHeight() {
-        return windowHeight;
-    }
-
-    public int getWindowWidth() {
-        return windowWidth;
-    }
-
     public Pane getPane() {
         return pane;
-    }
-
-    public void setWindowHeight(int windowHeight) {
-        this.windowHeight = windowHeight;
-    }
-
-    public void setWindowWidth(int windowWidth) {
-        this.windowWidth = windowWidth;
     }
 
     public void setPane(Pane pane) {

@@ -1,4 +1,4 @@
-package org.example;
+package org.example.models;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Path;
 import javafx.scene.transform.Rotate;
 import javafx.util.Duration;
+import org.example.utils.RenderUtils;
 
 public class AnimationCircle {
     private final Path part1;

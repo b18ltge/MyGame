@@ -2,6 +2,8 @@ package org.example;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeType;
+import org.example.models.Bullet;
+import org.example.models.Cell;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -15,7 +17,7 @@ public class Player {
     private Color playerColor;
     private Color playerStrokeColor;
 
-    private void initColor(final Color playerColor) {
+    private void initColor(Color playerColor) {
         this.playerColor = playerColor;
         this.playerStrokeColor = new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(), 1.0);
         this.cells.forEach(cell -> {
@@ -72,13 +74,13 @@ public class Player {
         selectedCells.clear();
     }
 
-    public void removeCell(final Cell cell) {
+    public void removeCell(Cell cell) {
         cell.setPlayer(null);
         cells.remove(cell);
         selectedCells.remove(cell);
     }
 
-    public void addCell(final Cell cell) {
+    public void addCell(Cell cell) {
         var player = cell.getPlayer();
         if (player != null)
             player.removeCell(cell);
@@ -88,7 +90,7 @@ public class Player {
         this.cells.add(cell);
     }
 
-    public void addCells(final Collection<Cell> cells) {
+    public void addCells(Collection<Cell> cells) {
         cells.forEach(this::addCell);
     }
 
@@ -103,5 +105,9 @@ public class Player {
 
     public Color getPlayerColor() {
         return playerColor;
+    }
+
+    public Set<Cell> getSelectedCells() {
+        return selectedCells;
     }
 }

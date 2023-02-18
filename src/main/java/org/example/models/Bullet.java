@@ -1,50 +1,40 @@
-package org.example;
+package org.example.models;
 
 import javafx.animation.AnimationTimer;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import org.example.Player;
+import org.example.Settings;
+import org.example.utils.Vector2D;
 
-import javafx.scene.layout.Region;
-
-public class Bullet extends Region {
+public class Bullet {
     public final Player player;
     public final int amount;
     private final Cell target;
     private final Vector2D location;
     private final Vector2D velocity = new Vector2D(0,0);
     private final Vector2D acceleration = new Vector2D(0,0);
-    private AnimationTimer animationTimer;
+    private final AnimationTimer animationTimer;
 
     private final Pane pane;
     private final Node view;
 
     // view dimensions
-    private int centerX;
-    private int centerY;
-    private int radius;
-    private double angle;
+    private final int radius;
 
-    public Bullet(final Pane pane, Player player, int posX, int posY, Cell target, int amount, int radius) {
+    public Bullet(Pane pane, Player player, int posX, int posY, Cell target, int amount, int radius) {
 
         this.location = new Vector2D(posX, posY);
         this.target = target;
         this.amount = amount;
         this.radius = radius;
-        this.centerX = radius;
-        this.centerY = radius;
         this.player = player;
         this.pane = pane;
 
-        this.view = createView();
+        this.view = createView(posX, posY);
 
-        setPrefSize(radius, radius);
-
-        // add view to this node
-        getChildren().add( view);
-
-        pane.getChildren().add(this);
+        pane.getChildren().add(view);
 
         animationTimer = new AnimationTimer() {
             @Override
@@ -61,11 +51,10 @@ public class Bullet extends Region {
         animationTimer.start();
     }
 
-    private Node createView() {
-        Circle circle = new Circle( radius);
-
-        circle.setCenterX(radius);
-        circle.setCenterY(radius);
+    private Node createView(int posX, int posY) {
+        Circle circle = new Circle(radius);
+        circle.setCenterX(posX);
+        circle.setCenterY(posY);
 
         circle.setStroke(player.getPlayerColor());
         circle.setFill(player.getPlayerStrokeColor());
@@ -84,9 +73,6 @@ public class Bullet extends Region {
         // change location depending on velocity
         location.add(velocity);
 
-        // angle: towards velocity (ie target)
-        angle = velocity.heading2D();
-
         // clear acceleration
         acceleration.multiply(0);
     }
@@ -104,7 +90,7 @@ public class Bullet extends Region {
         desired.normalize();
 
         // If we are closer than 21 pixels...
-        if (distance < target.getRadius()) {
+        if (distance < target.getRadius() + this.radius) {
             desired.multiply(0);
             target.takeDamage(this);
             player.removeBullet(this);
@@ -125,12 +111,11 @@ public class Bullet extends Region {
      * Update node position
      */
     private void display() {
-        relocate(location.x - centerX, location.y - centerY);
+        view.relocate(location.x - radius, location.y - radius);
     }
 
     public void deactivate() {
         animationTimer.stop();
         this.pane.getChildren().remove(view);
-        this.pane.getChildren().remove(this);
     }
 }

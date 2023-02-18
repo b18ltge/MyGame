@@ -1,4 +1,4 @@
-package org.example;
+package org.example.models;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -10,6 +10,7 @@ import javafx.scene.shape.*;
 import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
+import org.example.Player;
 
 public class Cell extends Circle {
     private int health;
@@ -23,7 +24,7 @@ public class Cell extends Circle {
     private final Timeline decreaseHealthTimeLine;
     private Player player;
     private final Pane pane;
-    public Cell(final Pane pane, int health, int maxHealth, int radius, int regenDelay, int posX, int posY) {
+    public Cell(Pane pane, int health, int maxHealth, int radius, int regenDelay, int posX, int posY) {
 
         super(posX, posY, radius);
         this.maxHealth = maxHealth;
@@ -80,7 +81,7 @@ public class Cell extends Circle {
     public int getRegenDelay() {
         return regenDelay;
     }
-    public void setHealth(int health) {
+    public void setHealth(final int health) {
         this.health = health;
         if (isHealing > -1 && health > maxHealth) {
             isHealing = -1;
@@ -98,25 +99,25 @@ public class Cell extends Circle {
         this.healthLabel.setText("" + this.health);
     }
 
-    public Bullet attack(final Cell target) {
+    public Bullet attack(Cell target) {
         if (this == target) {
             return null;
         }
 
-        var bullet = new Bullet(pane, player, (int) getCenterX(), (int) getCenterY(), target, this.getHealth() / 2, 8);
+        var bullet = new Bullet(pane, player, (int) getCenterX(), (int) getCenterY(), target, this.getHealth() / 2, 20);
         this.setHealth(health - this.getHealth() / 2);
 
         return bullet;
     }
 
     public final void setOnMouseClickedEvent(EventHandler<? super MouseEvent> eventHandler) {
-        this.setOnMouseClicked(eventHandler);
-        healthLabel.setOnMouseClicked(eventHandler);
-        animationCircle.getPart1().setOnMouseClicked(eventHandler);
-        animationCircle.getPart2().setOnMouseClicked(eventHandler);
+        this.setOnMousePressed(eventHandler);
+        healthLabel.setOnMousePressed(eventHandler);
+        animationCircle.getPart1().setOnMousePressed(eventHandler);
+        animationCircle.getPart2().setOnMousePressed(eventHandler);
     }
 
-    public void takeDamage(final Bullet bullet) {
+    public void takeDamage(Bullet bullet) {
         if (bullet.player.getPlayerColor() == this.player.getPlayerColor()) {
             setHealth(health + bullet.amount);
             return;
