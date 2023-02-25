@@ -1,9 +1,8 @@
-package org.example;
+package org.example.models;
 
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeType;
-import org.example.models.Bullet;
-import org.example.models.Cell;
+import org.example.scenes.GameScene;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -16,10 +15,13 @@ public class Player {
     private final Set<Bullet> activeBullets = new HashSet<>();
     private Color playerColor;
     private Color playerStrokeColor;
+    private boolean canPlay;
+    private final GameScene gameScene;
 
     private void initColor(Color playerColor) {
         this.playerColor = playerColor;
         this.playerStrokeColor = new Color(playerColor.getRed(), playerColor.getGreen(), playerColor.getBlue(), 1.0);
+        this.canPlay = cells.size() > 0;
         this.cells.forEach(cell -> {
             cell.setFill(playerColor);
             cell.setStroke(playerStrokeColor);
@@ -29,12 +31,14 @@ public class Player {
     }
 
 
-    public Player(Color playerColor, Set<Cell> playerCells) {
+    public Player(GameScene gameScene, Color playerColor, Set<Cell> playerCells) {
+        this.gameScene = gameScene;
         addCells(playerCells);
         initColor(playerColor);
     }
 
-    public Player(Color playerColor, Cell... playerCells) {
+    public Player(GameScene gameScene, Color playerColor, Cell... playerCells) {
+        this.gameScene = gameScene;
         addCells(List.of(playerCells));
         initColor(playerColor);
     }
@@ -78,6 +82,10 @@ public class Player {
         cell.setPlayer(null);
         cells.remove(cell);
         selectedCells.remove(cell);
+        this.canPlay = cells.size() > 0 || activeBullets.size() > 0;
+        if (!canPlay) {
+            gameScene.checkWinner();
+        }
     }
 
     public void addCell(Cell cell) {
@@ -97,6 +105,10 @@ public class Player {
     public void removeBullet(final Bullet bullet) {
         activeBullets.remove(bullet);
         bullet.deactivate();
+        this.canPlay = cells.size() > 0 || activeBullets.size() > 0;
+        if (!canPlay) {
+            gameScene.checkWinner();
+        }
     }
 
     public Color getPlayerStrokeColor() {
@@ -109,5 +121,9 @@ public class Player {
 
     public Set<Cell> getSelectedCells() {
         return selectedCells;
+    }
+
+    public boolean canPlay() {
+        return canPlay;
     }
 }

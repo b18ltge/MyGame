@@ -4,7 +4,7 @@ import javafx.scene.shape.*;
 import javafx.scene.paint.Color;
 
 public class RenderUtils {
-    public static Path drawSemiRing(final int centerX, final int centerY, final int radius, Color strkColor, final int offset) {
+    public static Path drawSemiRing(final short centerX, final short centerY, final short radius, Color strkColor, final int offset) {
         Path path = new Path();
         path.setStroke(strkColor);
 

@@ -10,21 +10,21 @@ import javafx.scene.shape.*;
 import javafx.scene.control.Label;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
-import org.example.Player;
+import org.example.Settings;
 
 public class Cell extends Circle {
-    private int health;
-    private final int maxHealth;
-    private final int regenDelay;
+    private short health;
+    private final short maxHealth;
+    private final short regenDelay;
     private final Label healthLabel;
     private boolean isSelected = false;
     private byte isHealing = 1;
-    private final AnimationCircle animationCircle;
+    private AnimationCircle animationCircle;
     private final Timeline increaseHealthTimeLine;
     private final Timeline decreaseHealthTimeLine;
     private Player player;
     private final Pane pane;
-    public Cell(Pane pane, int health, int maxHealth, int radius, int regenDelay, int posX, int posY) {
+    public Cell(Pane pane, short health, short maxHealth, short radius, short regenDelay, short posX, short posY) {
 
         super(posX, posY, radius);
         this.maxHealth = maxHealth;
@@ -41,8 +41,6 @@ public class Cell extends Circle {
 
         setHealth(health);
 
-        this.animationCircle = new AnimationCircle(posX, posY, radius + 10, Color.BLACK);
-
         this.increaseHealthTimeLine = new Timeline(
                 new KeyFrame(Duration.millis(regenDelay), actionEvent -> setHealth(Cell.this.health + 1))
         );
@@ -55,8 +53,6 @@ public class Cell extends Circle {
 
         pane.getChildren().add(this);
         pane.getChildren().add(healthLabel);
-        pane.getChildren().add(animationCircle.getPart1());
-        pane.getChildren().add(animationCircle.getPart2());
     }
 
     public void onSelected() {
@@ -70,19 +66,19 @@ public class Cell extends Circle {
         animationCircle.rotate();
     }
 
-    public int getHealth() {
+    public short getHealth() {
         return health;
     }
 
-    public int getMaxHealth() {
+    public short getMaxHealth() {
         return maxHealth;
     }
 
-    public int getRegenDelay() {
+    public short getRegenDelay() {
         return regenDelay;
     }
     public void setHealth(final int health) {
-        this.health = health;
+        this.health = (short) health;
         if (isHealing > -1 && health > maxHealth) {
             isHealing = -1;
             increaseHealthTimeLine.stop();
@@ -104,7 +100,7 @@ public class Cell extends Circle {
             return null;
         }
 
-        var bullet = new Bullet(pane, player, (int) getCenterX(), (int) getCenterY(), target, this.getHealth() / 2, 20);
+        var bullet = new Bullet(pane, player, (short) getCenterX(), (short) getCenterY(), target, (short) (this.getHealth() / 2), Settings.BULLET_RADIUS);
         this.setHealth(health - this.getHealth() / 2);
 
         return bullet;
@@ -123,12 +119,11 @@ public class Cell extends Circle {
             return;
         }
 
-        int rest = bullet.amount - this.health;
+        short rest = (short) (bullet.amount - this.health);
         setHealth(Math.max(0, health - bullet.amount));
         if (health == 0) {
-            this.player = bullet.player;
             bullet.player.addCell(this);
-            this.health = rest;
+            setHealth(rest);
         }
     }
 
@@ -138,5 +133,14 @@ public class Cell extends Circle {
 
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public void initAminationCircle() {
+        this.animationCircle = new AnimationCircle(
+                centerXProperty().getValue().shortValue(),
+                centerYProperty().getValue().shortValue(),
+                (short) (getRadius() + 10), Color.BLACK);
+        pane.getChildren().add(animationCircle.getPart1());
+        pane.getChildren().add(animationCircle.getPart2());
     }
 }

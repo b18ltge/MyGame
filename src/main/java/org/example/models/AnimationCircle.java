@@ -13,7 +13,7 @@ public class AnimationCircle {
     private final Path part1;
     private final Path part2;
     private final Timeline rotationTimeline;
-    public AnimationCircle(int centerX, int centerY, int radius, Color strkColor) {
+    public AnimationCircle(short centerX, short centerY, short radius, Color strkColor) {
         this.part1 = RenderUtils.drawSemiRing(centerX, centerY, radius, strkColor, 0);
         this.part2 = RenderUtils.drawSemiRing(centerX, centerY, radius, strkColor, radius * 2);
         part1.setVisible(false);
@@ -48,4 +48,5 @@ public class AnimationCircle {
         part1.setVisible(false);
         part2.setVisible(false);
     }
+
 }

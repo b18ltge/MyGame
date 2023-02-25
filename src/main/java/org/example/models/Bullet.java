@@ -4,13 +4,12 @@ import javafx.animation.AnimationTimer;
 import javafx.scene.Node;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
-import org.example.Player;
 import org.example.Settings;
 import org.example.utils.Vector2D;
 
 public class Bullet {
     public final Player player;
-    public final int amount;
+    public final short amount;
     private final Cell target;
     private final Vector2D location;
     private final Vector2D velocity = new Vector2D(0,0);
@@ -21,9 +20,9 @@ public class Bullet {
     private final Node view;
 
     // view dimensions
-    private final int radius;
+    private final short radius;
 
-    public Bullet(Pane pane, Player player, int posX, int posY, Cell target, int amount, int radius) {
+    public Bullet(Pane pane, Player player, short posX, short posY, Cell target, short amount, short radius) {
 
         this.location = new Vector2D(posX, posY);
         this.target = target;
@@ -51,7 +50,7 @@ public class Bullet {
         animationTimer.start();
     }
 
-    private Node createView(int posX, int posY) {
+    private Node createView(short posX, short posY) {
         Circle circle = new Circle(radius);
         circle.setCenterX(posX);
         circle.setCenterY(posY);
@@ -78,7 +77,7 @@ public class Bullet {
     }
 
     /**
-     * Move sprite towards target
+     * Move bullet towards target
      */
     private void seek(final Cell target) {
 
@@ -92,8 +91,8 @@ public class Bullet {
         // If we are closer than 21 pixels...
         if (distance < target.getRadius() + this.radius) {
             desired.multiply(0);
-            target.takeDamage(this);
             player.removeBullet(this);
+            target.takeDamage(this);
         }
         // Otherwise, proceed at maximum speed.
         else {
