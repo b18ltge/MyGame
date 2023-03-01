@@ -1,6 +1,7 @@
 package org.example.utils;
 
 import java.sql.*;
+import java.util.Collection;
 import java.util.Iterator;
 
 public class DBClass {
@@ -42,5 +43,40 @@ public class DBClass {
             exception.printStackTrace();
         }
         return false;
+    }
+
+    public static int[] getLevelIDs() {
+        var connection = getConnection();
+        var sql = "SELECT * FROM levels ORDER BY id";
+
+        try ( PreparedStatement statement = connection.prepareStatement(sql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
+            connection.setAutoCommit(false);
+            var resultSet = statement.executeQuery();
+            connection.commit();
+
+            resultSet.last();
+            int[] result = new int[resultSet.getRow()];
+            resultSet.beforeFirst();
+
+            int i = 0;
+            while (resultSet.next()) {
+                result[i] = resultSet.getInt(1);
+                ++i;
+            }
+
+            resultSet.close();
+            return result;
+        } catch (Exception exception) {
+            if (connection != null) {
+                try {
+                    System.err.print("Transaction is being rolled back");
+                    connection.rollback();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            exception.printStackTrace();
+        }
+        return null;
     }
 }

@@ -11,6 +11,7 @@ public class MainScene extends AbstractScene {
     public MainScene(Stage stage) {
         super(stage);
         this.playButton = new Button("Play!");
+        playButton.setFont(Settings.DEFAULT_FONT);
         this.pane = new Pane(playButton);
         playButton.layoutXProperty().bind(pane.widthProperty().divide(2).subtract(playButton.widthProperty().divide(2)));
         playButton.layoutYProperty().bind(pane.heightProperty().divide(2));

@@ -12,15 +12,25 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import org.example.Settings;
+import org.example.utils.DBClass;
 
 public class LevelsScene extends AbstractScene {
-    private void initLevels(final int width, final int height, final int offset, final int step, final int count) {
+    private void initLevels(final int width, final int height, final int offset, final int step) {
         int posX = offset;
         int posY = offset;
         int maxX = (int) (stage.getWidth() - offset);
 
-        for(int i = 1; i <= count; ++i) {
-            var square = new Rectangle(width, height, Color.BLUE);
+        int[] levelIDs = DBClass.getLevelIDs();
+        if (levelIDs == null)
+            return;
+
+        for(int i = 0; i < levelIDs.length; ++i) {
+            int finalI = i;
+            var square = new Rectangle(width, height, Color.BLUE) {
+                public int getLvlID() {
+                    return levelIDs[finalI];
+                }
+            };
             square.setLayoutX(posX);  square.setLayoutY(posY);
             var text = new Label("" + i);
             text.setFont(new Font(16));
@@ -36,7 +46,7 @@ public class LevelsScene extends AbstractScene {
             }
 
             square.setOnMousePressed(mouseEvent -> {
-                AbstractScene gameScene = new GameScene(stage);
+                AbstractScene gameScene = new GameScene(stage, square.getLvlID());
                 gameScene.show();
             });
         }
@@ -46,7 +56,7 @@ public class LevelsScene extends AbstractScene {
         super(stage);
         this.pane = new Pane();
 
-        this.initLevels(80,80,20,30, 15);
+        this.initLevels(80,80,20,30);
         ScrollPane scrollPane = new ScrollPane();
         scrollPane.setContent(this.pane);
 

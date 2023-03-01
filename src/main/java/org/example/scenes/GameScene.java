@@ -35,7 +35,8 @@ public class GameScene extends AbstractScene {
         pane.getChildren().add(selectionRectangle);
     }
 
-    public GameScene(Stage stage) {
+    public GameScene(Stage stage, int lvlID) {
+        // TODO: load lvl from database using lvlID;
         super(stage);
 
         loadScene();
